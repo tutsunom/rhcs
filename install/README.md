@@ -80,43 +80,85 @@ mon01 | SUCCESS => {
 -  hosts: all
    user: root
    tasks:
-     - name: register system to Red Hat Subscription Manager and attach subscription
-       redhat_subscription: username=$CDN_USERNAME password=$CDN_PASSWORD pool_id=$POOL_ID state=present
+     - name: register system to RHSM and attach subscription
+       redhat_subscription:
+         username: $CDN_USERNAME
+         password: $CDN_PASSWORD
+         pool_id: $POOL_ID
+         state=present
      - name: disable all repository
-       yum_repository: name=* state=absent
+       yum_repository:
+         name: '*'
+         state: absent
      - name: enable RHEL 7 base repository
-       yum_repository: name=rhel-7-server-rpms description="Red Hat Enterprise Linux 7 Server (RPMs)" baseurl=https://cdn.redhat.com/content/dist/rhel/server/7/$releasever/$basearch/os state=present
+       yum_repository:
+         name: rhel-7-server-rpms
+         description: Red Hat Enterprise Linux 7 Server (RPMs)
+         baseurl: https://cdn.redhat.com/content/dist/rhel/server/7/$releasever/$basearch/os
+         state: present
      - name: enable RHEL 7 extras repository
-       yum_repository: name=rhel-7-server-extras-rpms description="Red Hat Enterprise Linux 7 Server - Extras (RPMs)" baseurl=https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/extras/os state=present
+       yum_repository:
+         name: rhel-7-server-extras-rpms
+         description: Red Hat Enterprise Linux 7 Server - Extras (RPMs)
+         baseurl: https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/extras/os
+         state: present
 
 ## MONの設定
 -  hosts: mons
    user: root
    tasks:
      - name: enable RHCS 3 MON repository
-       yum_repository: name=rhel-7-server-rhceph-3-mon-rpms description="Red Hat Ceph Storage MON 3 for Red Hat Enterprise Linux 7 Server (RPMs)" baseurl=https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-mon/3/os state=present
+       yum_repository:
+         name: rhel-7-server-rhceph-3-mon-rpms
+         description: Red Hat Ceph Storage MON 3 for Red Hat Enterprise Linux 7 Server (RPMs)
+         baseurl: https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-mon/3/os
+         state: present
      - name: accept 6789/tcp port on firewall
-       firewalld: port=6789/tcp zone=public permanent=true state=enabled
+       firewalld:
+         port: 6789/tcp
+         zone: public
+         permanent: true
+         state: enabled
      - name: accept 6800-7300/tcp port on firewall
-       firewalld: port=6800-7300/tcp zone=public permanent=true state=enabled
+       firewalld:
+         port: 6700-7300/tcp
+         zone: public
+         permanent: true
+         state: enabled
 
 ## OSDの設定
 -  hosts: osds
    user: root
    tasks:
      - name: enable RHCS 3 OSD repository
-       yum_repository: name=rhel-7-server-rhceph-3-osd-rpms description="Red Hat Ceph Storage OSD 3 for Red Hat Enterprise Linux 7 Server (RPMs)" baseurl=https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-osd/3/os state=present
+       yum_repository:
+         name: rhel-7-server-rhceph-3-osd-rpms
+         description: Red Hat Ceph Storage OSD 3 for Red Hat Enterprise Linux 7 Server (RPMs)
+         baseurl: https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-osd/3/os
+         state: present
      - name: accept 6800-7300/tcp port on firewall
-       firewalld: port=6800-7300/tcp zone=public permanent=true state=enabled
+       firewalld:
+         port: 6700-7300/tcp
+         zone: public
+         permanent: true
+         state: enabled
 
 ## RGWの設定
 -  hosts: rgws
    user: root
    tasks:
      - name: enable RHCS 3 Tools repository
-       yum_repository: name=rhel-7-server-rhceph-3-tools-rpms description="Red Hat Ceph Storage Tools 3 for Red Hat Enterprise Linux 7 Server (RPMs)" baseurl=https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-tools/3/os state=present
+       yum_repository:
+         name: rhel-7-server-rhceph-3-tools-rpms
+         description: Red Hat Ceph Storage Tools 3 for Red Hat Enterprise Linux 7 Server (RPMs)
+         baseurl: https://cdn.redhat.com/content/dist/rhel/server/7/7Server/$basearch/rhceph-tools/3/os
+         state: present
      - name: accept 7480/tcp port on firewall
-       firewalld: port=7480/tcp zone=public permanent=true state=enabled
+       firewalld:
+         port: 7480/tcp
+         zone: public
+         permanent: true
+         state: enabled
 
 [root@mgmt]# ansible-playbook setup.yml
 ```
