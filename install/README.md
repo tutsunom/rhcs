@@ -34,20 +34,17 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
   - RGW : rhel-7-server-rpms, rhel-7-server-extras-rpms, rhel-7-server-rhceph-3-tools-rpms
 - 時刻同期(ntp)
 
-
-
 ```
-[root@mgmt]# nmcli connection modify eth1 ipv4.dns xxx.xxx.xxx.xxx
 [root@mgmt]# nmcli connection modify eth1 ipv4.dns xxx.xxx.xxx.xxx
 [root@mgmt]# systemctl restart NetworkManager.service
 
-## [c]サブスクリプションのアタッチ
-[root@mgmt]# subscription-manager register --username=[USERNAME] --password=[PASSWORD]
-[root@mgmt]# subscription-manager list --available　　## RHELとRHCSのPool IDを調べてメモ
-[root@mgmt]# subscription-manager attach --pool=[POOL_ID]
+[root@mgmt]# subscription-manager register --username=$USERNAME --password=$PASSWORD
+[root@mgmt]# subscription-manager reflesh
+[root@mgmt]# subscription-manager list --available --all --matches="*Ceph*"
+[root@mgmt]# subscription-manager attach --pool=$POOL_ID
 
-## [d]yumリポジトリの有効化
-[root@mgmt]# subscription-manager repos --disable='*' \ --enable=rhel-7-server-rpms --enable=rhel-7-server-rhscon-2-installer-rpms
+[root@mgmt]# subscription-manager repos --disable='*' --enable=rhel-7-server-rpms --enable=rhel-7-server-extras-rpms --enable=rhel-7-server-rhceph-3-tools-rpms
+[root@mgmt]# yum update
 
 ## [e]時刻同期 : ntpdのインストールと設定
 [root@mgmt]# yum -y install ntp
