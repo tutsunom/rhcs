@@ -4,7 +4,11 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
 そこでceph-ansibleを使ったクラスターのデプロイ手順を記載します。  
 なお今回はceph daemonをコンテナとしてデプロイするスタイルではなく、1ノードの1デーモンをデプロイするオーソドックスなスタイルとします。*(コンテナデプロイは別機会に書きます)*
 
-次のようなイメージのcephクラスターをデプロイする手順を記載します。
+次のようなcephクラスターをイメージしてデプロイする手順を記載します。
+
+
+![クラスターイメージ](https://github.com/tutsunom/rhcs/blob/master/install/image/cluster.png)
+
 
 ### 事前準備
 hoge
