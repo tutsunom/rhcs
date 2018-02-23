@@ -1,5 +1,5 @@
-# ceph-ansibleを使ったRed Hat Ceph Storage 3クラスターのデプロイ
-RHCS2.0からcephクラスターのデプロイはceph-ansibleを利用するようになりました。(昔ながらのceph-deployはdeprecated)
+## ceph-ansibleを使ったRed Hat Ceph Storage 3クラスターのデプロイ
+RHCS2からcephクラスターのデプロイはceph-ansibleを利用するようになりました。(ceph-deployはdeprecated)
 
 そこでceph-ansibleを使ったクラスターのデプロイ手順を記載します。
 
@@ -9,4 +9,4 @@ RHCS2.0からcephクラスターのデプロイはceph-ansibleを利用するよ
 次のようなイメージのcephクラスターをデプロイする手順を記載します。
 *簡単にテスト環境を作るのに参考になれば幸いです。
 
-## 
+### 事前準備
