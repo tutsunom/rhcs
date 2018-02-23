@@ -1,6 +1,8 @@
 # ceph-ansibleを使ったRed Hat Ceph Storage 3クラスターのデプロイ
 
-RHCS2からcephクラスターのデプロイはceph-ansibleを利用するようになりました。(ceph-deployはdeprecated)  
+## はじめに
+
+RHCS2からcephクラスターのデプロイはceph-ansibleを利用するようになりました。(ceph-deployはdeprecated)  
 そこでceph-ansibleを使ったクラスターのデプロイ手順を記載します。  
 なお今回はceph daemonをコンテナとしてデプロイするスタイルではなく、コンテナを使わない1node:1daemonのオーソドックスなスタイルとします。(コンテナデプロイのスタイルは別の機会に書きます)
 
@@ -13,7 +15,7 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
 ## 事前準備
 
 クラスターをデプロイする前に各ノードで事前準備が必要になります。  
-これも負荷がバカにならない作業なので、Mgmtノードからansibleを使ってこれらの設定も自動で行います。
+これも負荷がバカにならない作業なので、mgmtノードからansibleを使ってこれらの設定も自動で行います。
 
 
 
@@ -35,7 +37,7 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
 
 
 ```
-## [b]名前解決 : DNSサーバの追加
+[root@mgmt]# nmcli connection modify eth1 ipv4.dns xxx.xxx.xxx.xxx
 (ans-inst)# nmcli connection modify eth1 ipv4.dns xxx.xxx.xxx.xxx
 (ans-inst)# systemctl restart NetworkManager.service
 
