@@ -183,7 +183,7 @@ ceph-ansibleで必要となる変数はたくさんあります。これらはYA
 
 ### 2. all.ymlの作成
 all.ymlはクラスター全体に共通する項目が格納されるYAMLファイルです。  
-サンプルの`/usr/share/ceph-ansible/group_vars/all.yml.sample`をコピーしてall.ymlを作りますが、始めは全てコメントアウトされているので適切に編集します。
+サンプルの`/usr/share/ceph-ansible/group_vars/all.yml.sample`をコピーしてall.ymlを作ります。適宜コメントマーカーを外して編集します。
 ```
 [root@mgmt]# cd /usr/share/ceph-ansible/
 [root@mgmt]# cp group_vars/all.yml.sample group_vars/all.yml
@@ -205,7 +205,6 @@ radosgw_interface: eth0
 ### 3. osds.ymlの作成
 `osds.yml`はOSDの項目が格納されるYAMLファイルです。OSDはdataとjournalの配置など設計によっていろいろなパターンの構成を取ることができますが、今回はシンプルにuserdataとjournalを全OSDに分散するパターンで作ります。  
 `/usr/share/ceph-ansible/group_vars/osds.yml.sample`をコピーして`osds.yml`を作って編集します。
-
 ```
 [root@mgmt]# cd /usr/share/ceph-ansible/
 [root@mgmt]# cp group_vars/osds.yml.sample group_vars/osds.yml
@@ -222,11 +221,80 @@ devices:
 
 ### 4. playbookの実行
 ceph-ansibleのplaybookは`/usr/share/ceph-ansible/site.yml.sample`をコピーして`site.yml`として作ります。  
-これ自身は編集する必要がないので、そのまま`ansible-playbook`コマンドで指定します。
-
-
+`site.yml`自身は編集する必要がなく、そのまま`ansible-playbook`コマンドで指定してplaybookを実行します。  
 ```
 [root@mgmt]# cd /usr/share/ceph-ansible/
 [root@mgmt]# cp site.yml.sample site.yml
-[root@mgmt]# echo "retry_files_save_path = ~/" >> /etc/ansible/ansible.cfg
+[root@mgmt]# echo "retry_files_save_path = ~/" >> /etc/ansible/ansible.cfg	#retryファイルのパスをホームディレクトリに指定
 [root@mgmt]# ansible-playbook site.yml
+...
+...
+PLAY RECAP ***********************************************************************************************************
+mon01		: ok=97   changed=22   unreachable=0    failed=0   
+mon02		: ok=84   changed=18   unreachable=0    failed=0   
+mon03		: ok=89   changed=19   unreachable=0    failed=0   
+osd01		: ok=64   changed=14   unreachable=0    failed=0   
+osd02		: ok=59   changed=12   unreachable=0    failed=0   
+osd03		: ok=59   changed=12   unreachable=0    failed=0   
+rgw		: ok=45   changed=14   unreachable=0    failed=0   
+```
+
+## クラスター動作確認
+
+無事にplaybookがエラー無く実行完了したら動作確認をしてみます。  
+いずれかのmonノードにログインしてクラスターのステータスを確認します。
+```
+[root@mon01]# ceph status
+  cluster:
+    id:     5765942e-be0e-4a70-8542-871bf4ced6c4
+    health: HEALTH_WARN
+            too few PGs per OSD (16 < min 30)
+ 
+  services:
+    mon: 3 daemons, quorum mon02,mon03,mon01
+    mgr: mon02(active), standbys: mon03, mon01
+    osd: 9 osds: 9 up, 9 in
+    rgw: 1 daemon active
+ 
+  data:
+    pools:   6 pools, 48 pgs
+    objects: 208 objects, 3359 bytes
+    usage:   971 MB used, 45009 MB / 45980 MB avail
+    pgs:     48 active+clean
+
+```
+`too few PGs per OSD`という内容のWARNINGが出ています。デフォルトで作られているプールに割り振られているPGが少ないようです。  
+デフォルトのプールのPGを増やしてもいいのですが、せっかくなので新しいプールを作ってもう一度確認してみます。
+```
+[root@mon01]# ceph osd pool create mypool 256 256
+pool ‘mypool’ created
+[root@mon01]# ceph status
+  cluster:
+    id:     5765942e-be0e-4a70-8542-871bf4ced6c4
+    health: HEALTH_OK
+...
+  data:
+    pools:   7 pools, 304 pgs
+    objects: 208 objects, 3359 bytes
+    usage:   977 MB used, 45002 MB / 45980 MB avail
+    pgs:     304 active+clean
+```
+`HEALTH_OK`になりました。次に作ったプールにオブジェクトを置いてみます。
+```
+[root@mon01]# echo "Hello world of ceph." > ~/test.txt
+
+[root@mon01]# ls -l ~/test.txt
+-rw-r--r--. 1 root root 21  2月 26 00:16 ~/test.txt
+[root@mons-1 ~]# rados --pool mypool put helloworld ~/test.txt
+[root@mons-1 ~]# rados --pool mypool ls
+helloworld
+[root@mons-1 ~]# rados --pool mypool df
+POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD WR_OPS WR     
+mypool      21       1      0      3                  0       0        0      0  0      1 1024 
+...
+```
+
+```
+[root@mons-1 ~]# ceph osd pool get mypool size
+size: 3
+```
