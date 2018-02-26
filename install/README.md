@@ -11,6 +11,7 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
 
 ![クラスターイメージ](https://github.com/tutsunom/rhcs/blob/master/install/image/cluster.png)
 
+---
 
 ## 事前セットアップ
 
@@ -169,6 +170,7 @@ mon01 | SUCCESS => {
 
 failed無しでplaybookが実行されたら準備完了です。
 
+---
 
 ## ceph-ansibleの変数用YAMLファイルの作成
 
@@ -239,8 +241,11 @@ osd03		: ok=59   changed=12   unreachable=0    failed=0
 rgw		: ok=45   changed=14   unreachable=0    failed=0   
 ```
 
-## クラスター動作確認
+---
 
+## クラスターの動作確認
+
+### ステータスをチェックする
 無事にplaybookがエラー無く実行完了したら動作確認をしてみます。  
 いずれかのmonノードにログインしてクラスターのステータスを確認します。
 ```
@@ -279,7 +284,10 @@ pool ‘mypool’ created
     usage:   977 MB used, 45002 MB / 45980 MB avail
     pgs:     304 active+clean
 ```
-`HEALTH_OK`になりました。次に作ったプールにオブジェクトを置いてみます。
+クラスター全体でPGの数が増えたため、`HEALTH_OK`になりました。
+
+### プールにオブジェクトをPUTする
+次にMONノードからプールにオブジェクトをPUTしてみます。
 ```
 [root@mon01]# echo "Hello world of ceph." > ~/test.txt
 
@@ -293,8 +301,32 @@ POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS 
 mypool      21       1      0      3                  0       0        0      0  0      1 1024 
 ...
 ```
-
+`test.txt`というファイルを`hellowworld`というオブジェクト名で`mypool`にPUTした結果です。  
+`USED`と`OBJECTS`にはそれぞれプールに置かれているオブジェクトのサイズと個数が表示されます。`WR_OPS`と`WR`にはそれぞれ書き込み回数と書き込まれた容量が表示されます。
+`COPIES`が3であるのは`mypool`がデフォルトの3-way replicationで作られているためです。念の為確認してみましょう。
 ```
 [root@mons-1 ~]# ceph osd pool get mypool size
 size: 3
 ```
+
+### プールからオブジェクトをGETする
+別のノードにログインしてプールからオブジェクトをGETしてみます。
+```
+[root@mon01]# ssh mon02
+[root@mon02]# rados --pool mypool ls
+helloworld
+[root@mons-2 ~]# rados --pool mypool get helloworld get.txt
+[root@mons-2 ~]# ls -l get.txt
+-rw-r--r--. 1 root root   21  2月 26 01:00 get.txt
+[root@mons-2 ~]# cat get.txt 
+Hello world of ceph.
+[root@mons-2 ~]# rados --pool mypool df
+POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD   WR_OPS WR   
+mypool2     21       1      0      3                  0       0        0      1 1024      1 1024 
+...
+```
+先程とは違うノードから`hellowworld`オブジェクトをGETできました。`RD_OPS`と`RD`はそれぞれ読み込み回数と読み込み容量が表示されるところであり、GETしたことによりそれぞれ数値が変わりました。
+
+---
+
+## まとめ
