@@ -51,6 +51,10 @@ RHCS2からcephクラスターのデプロイはceph-ansibleを利用するよ�
 mon01
 mon02
 mon03
+[mgrs]
+mon01
+mon02
+mon03
 [osds]
 osd01
 osd02
@@ -163,5 +167,66 @@ mon01 | SUCCESS => {
 [root@mgmt]# ansible-playbook setup.yml
 ```
 
+failed無しでplaybookが実行されたら準備完了です。
 
 
+## ceph-ansibleの変数用YAMLファイルの作成
+
+ceph-ansibleで必要となる変数はたくさんあります。これらはYAMLファイルに記述され、これがcephクラスターの基本構成を決めます。  
+ここではクラスターを構成する必要最小限の項目だけ取り上げて作成しますが、他の項目も興味がある方は後述される各YAMLのサンプルファイルに説明がありますのでご覧下さい。
+
+### 1. keyring用のディレクトリを作成
+```
+[root@mgmt]# mkdir ~/ceph-ansible-keys
+[root@mgmt]# ln -s /usr/share/ceph-ansible/group_vars /etc/ansible/group_vars
+```
+
+### 2. all.ymlの作成
+all.ymlはクラスター全体に共通する項目が格納されるYAMLファイルです。  
+サンプルの`/usr/share/ceph-ansible/group_vars/all.yml.sample`をコピーしてall.ymlを作りますが、始めは全てコメントアウトされているので適切に編集します。
+```
+[root@mgmt]# cd /usr/share/ceph-ansible/
+[root@mgmt]# cp group_vars/all.yml.sample group_vars/all.yml
+[root@mgmt]# vi all.yml		#下記のような項目を設定する
+[root@mgmt]# grep -v -e '^\s*#' -e '^\s*$' all.yml
+---
+dummy:
+fetch_directory: ~/ceph-ansible-keys
+ceph_origin: repository
+ceph_repository: rhcs
+ceph_repository_type: cdn
+ceph_rhcs_version: 3
+monitor_interface: eth0
+public_network: "10.0.10.0/16"
+cluster_network: "192.168.1.0/24"
+radosgw_interface: eth0
+```
+
+### 3. osds.ymlの作成
+`osds.yml`はOSDの項目が格納されるYAMLファイルです。OSDはdataとjournalの配置など設計によっていろいろなパターンの構成を取ることができますが、今回はシンプルにuserdataとjournalを全OSDに分散するパターンで作ります。  
+`/usr/share/ceph-ansible/group_vars/osds.yml.sample`をコピーして`osds.yml`を作って編集します。
+
+```
+[root@mgmt]# cd /usr/share/ceph-ansible/
+[root@mgmt]# cp group_vars/osds.yml.sample group_vars/osds.yml
+[root@mgmt]# vi osds.yml	#下記のような項目を設定する
+[root@mgmt]# grep -v -e '^\s*#' -e '^\s*$' osds.yml
+---
+dummy:
+osd_scenario: collocated
+devices:
+  - /dev/sdb
+  - /dev/sdc
+  - /dev/sdd
+```
+
+### 4. playbookの実行
+ceph-ansibleのplaybookは`/usr/share/ceph-ansible/site.yml.sample`をコピーして`site.yml`として作ります。  
+これ自身は編集する必要がないので、そのまま`ansible-playbook`コマンドで指定します。
+
+
+```
+[root@mgmt]# cd /usr/share/ceph-ansible/
+[root@mgmt]# cp site.yml.sample site.yml
+[root@mgmt]# echo "retry_files_save_path = ~/" >> /etc/ansible/ansible.cfg
+[root@mgmt]# ansible-playbook site.yml
