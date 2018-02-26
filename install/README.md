@@ -2,7 +2,7 @@
 
 ## はじめに
 
-RHCS2からcephクラスターのデプロイはceph-ansibleを利用するようになりました。(ceph-deployはdeprecated)  
+RHCS2からcephクラスターのデプロイはceph-ansibleを利用するようになりました(ceph-deployはdeprecated)。  
 そこでceph-ansibleを使ったクラスターのデプロイ手順を記載します。  
 なお今回はceph daemonをコンテナとしてデプロイするスタイルではなく、コンテナを使わない1node:1daemonのオーソドックスなスタイルとします。(コンテナデプロイのスタイルは別の機会に書きます)
 
