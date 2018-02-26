@@ -325,8 +325,9 @@ POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS 
 mypool2     21       1      0      3                  0       0        0      1 1024      1 1024 
 ...
 ```
-先程とは違うノードから`hellowworld`オブジェクトをGETできました。`RD_OPS`と`RD`はそれぞれ読み込み回数と読み込み容量が表示されるところであり、GETしたことによりそれぞれ数値が変わりました。
+先程とは違うノードから`helloworld`オブジェクトをGETできました。`RD_OPS`と`RD`はそれぞれ読み込み回数と読み込み容量が表示されるところであり、GETしたことによりそれぞれ数値が変わったことが確認できます。
 
 ---
 
-## まとめ
+## Revision History
+2017-02-26: 初版リリース
